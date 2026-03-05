@@ -62,6 +62,9 @@ func StartWorker(port string) {
 	}
 
 	http.HandleFunc("/task", handleTask)
+	http.HandleFunc("/worker/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	fmt.Println("Worker running on port", port)
 

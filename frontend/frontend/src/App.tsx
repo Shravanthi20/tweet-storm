@@ -1,31 +1,33 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Dashboard } from './Dashboard';
+import './App.css';
 
 type EventLog = {
-  node: string
-  message: string
-  timestamp: number
-}
+  node: string;
+  message: string;
+  timestamp: number;
+};
 
-function App() {
-  const [events, setEvents] = useState<EventLog[]>([])
+function Timeline() {
+  const [events, setEvents] = useState<EventLog[]>([]);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('http://localhost:8000/events')
-        if (!res.ok) return
-        const data = (await res.json()) as EventLog[]
-        setEvents(data)
+        const res = await fetch('http://localhost:8000/events');
+        if (!res.ok) return;
+        const data = (await res.json()) as EventLog[];
+        setEvents(data);
       } catch {
         // Keep UI running even if backend is temporarily down.
       }
-    }
+    };
 
-    fetchEvents()
-    const timer = setInterval(fetchEvents, 1000)
-    return () => clearInterval(timer)
-  }, [])
+    fetchEvents();
+    const timer = setInterval(fetchEvents, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <main style={{ maxWidth: 800, margin: '2rem auto', padding: '0 1rem' }}>
@@ -42,7 +44,28 @@ function App() {
         </ul>
       )}
     </main>
-  )
+  );
 }
 
-export default App
+function App() {
+  return (
+    <BrowserRouter>
+      <div className="app-container">
+        <nav className="navbar">
+          <div className="nav-brand">TweetStorm ⚡🐦</div>
+          <div className="nav-links">
+            <Link to="/" className="nav-link">Event Timeline</Link>
+            <Link to="/dashboard" className="nav-link highlight">Hash Ring Simulation</Link>
+          </div>
+        </nav>
+
+        <Routes>
+          <Route path="/" element={<Timeline />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  );
+}
+
+export default App;

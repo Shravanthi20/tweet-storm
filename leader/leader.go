@@ -6,21 +6,28 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"tweetstorm/algorithms"
 	"tweetstorm/shared"
 )
 
-var workers = []string{
-	"http://localhost:8001/task",
-	"http://localhost:8002/task",
-	"http://localhost:8003/task",
+var initialWorkers = []string{
+	"http://localhost:8001",
+	"http://localhost:8002",
+	"http://localhost:8003",
+	"http://localhost:8004", // adding the fourth worker from simulate_crash configuration
 }
 
-var nextWorker = 0
+var hashRing = algorithms.NewHashRing(500) // 500 virtual nodes for more even distribution
 var leaderClock = algorithms.NewLamportClock("leader")
 var eventMu sync.Mutex
 var eventLogs []shared.EventLog
+
+// State tracking for UI visualization
+var stateMu sync.Mutex
+var taskCounts = make(map[string]int)
+var recentTasks = make(map[string]string)
 
 func addEvent(node string, message string, timestamp int) {
 	eventMu.Lock()
@@ -35,7 +42,27 @@ func addEvent(node string, message string, timestamp int) {
 
 func forwardTask(tweet shared.Tweet) {
 	ts := leaderClock.SendEvent()
-	addEvent("Leader", "assigned task to worker", ts)
+
+	// Append a unique identifier to the tweet content for the hash key
+	// so that identical tweet strings from the client get evenly distributed!
+	hashKey := fmt.Sprintf("%s-%d-%d", tweet.Content, tweet.ID, time.Now().UnixNano())
+
+	// Get the worker node URL via Consistent Hashing on the unique key
+	workerURL := hashRing.GetNode(hashKey)
+
+	if workerURL == "" {
+		fmt.Println("[Leader] WARNING: No active workers in the hash ring! Task dropped.")
+		return
+	}
+
+	addEvent("Leader", fmt.Sprintf("assigned task to %s", workerURL), ts)
+
+	// Update UI State
+	stateMu.Lock()
+	taskCounts[workerURL]++
+	recentTasks[workerURL] = tweet.Content
+	stateMu.Unlock()
+
 	task := shared.Task{
 		Tweet:     tweet,
 		Timestamp: ts,
@@ -43,11 +70,32 @@ func forwardTask(tweet shared.Tweet) {
 
 	data, _ := json.Marshal(task)
 
-	workerURL := workers[nextWorker]
+	// Post the task to the selected worker node's /task endpoint
+	http.Post(workerURL+"/task", "application/json", bytes.NewBuffer(data))
+}
 
-	nextWorker = (nextWorker + 1) % len(workers)
+func startHealthChecks() {
+	ticker := time.NewTicker(3 * time.Second)
+	client := http.Client{Timeout: 1 * time.Second}
 
-	http.Post(workerURL, "application/json", bytes.NewBuffer(data))
+	for range ticker.C {
+		for _, worker := range initialWorkers {
+			// Ping the worker
+			resp, err := client.Get(worker + "/worker/ping")
+			if err != nil || resp.StatusCode != http.StatusOK {
+				// Worker is unreachable, remove from ring
+				hashRing.RemoveNode(worker)
+				fmt.Printf("[Leader] Health check failed for %s. Removed from hash ring.\n", worker)
+			} else {
+				// Worker is reachable, add to ring
+				hashRing.AddNode(worker)
+			}
+
+			if resp != nil {
+				resp.Body.Close()
+			}
+		}
+	}
 }
 
 func HandleTweet(w http.ResponseWriter, r *http.Request) {
@@ -78,13 +126,36 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(eventLogs)
 }
 
+// HandleState returns the current cluster state for frontend visualization
+func HandleState(w http.ResponseWriter, r *http.Request) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
+	state := map[string]interface{}{
+		"activeWorkers": hashRing.GetNodes(),
+		"taskCounts":    taskCounts,
+		"recentTasks":   recentTasks,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	json.NewEncoder(w).Encode(state)
+}
+
 func StartLeader(port string) {
 
 	// Node 5 is the initial Leader
 	algorithms.InitBully(5, port, 5)
 
+	// Initialize HashRing and Health checks
+	for _, w := range initialWorkers {
+		hashRing.AddNode(w)
+	}
+	go startHealthChecks()
+
 	http.HandleFunc("/tweet", HandleTweet)
 	http.HandleFunc("/events", HandleEvents)
+	http.HandleFunc("/api/state", HandleState)
 
 	fmt.Println("Leader running on port", port)
 
