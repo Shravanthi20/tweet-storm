@@ -88,6 +88,10 @@ func StartLeader(port string) {
 
 	fmt.Println("Leader running on port", port)
 
-	// Will block
-	http.ListenAndServe(":"+port, nil)
+	// Will block until port error
+	err := http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		fmt.Printf("[Leader Node 5] ERROR: Could not bind to port %s — %v\n", port, err)
+		fmt.Println("[Leader Node 5] TIP: Kill any existing process on this port and retry.")
+	}
 }
