@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"tweetstorm/algorithms"
 	"tweetstorm/shared"
 )
 
@@ -43,6 +44,23 @@ func handleTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartWorker(port string) {
+	nodeID := 0
+	switch port {
+	case "8001":
+		nodeID = 1
+	case "8002":
+		nodeID = 2
+	case "8003":
+		nodeID = 3
+	case "8004":
+		nodeID = 4
+	}
+
+	if nodeID != 0 {
+		// Initialize Bully on worker (Node 5 is initial leader)
+		algorithms.InitBully(nodeID, port, 5)
+	}
+
 	http.HandleFunc("/task", handleTask)
 
 	fmt.Println("Worker running on port", port)
