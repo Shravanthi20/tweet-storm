@@ -1,0 +1,131 @@
+.dashboard {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.alert-disconnected {
+  background-color: #ffcccc;
+  border: 1px solid #ff0000;
+  color: #cc0000;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  font-weight: bold;
+}
+
+.worker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.worker-card {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.worker-card.alive {
+  border-color: #4caf50;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.2);
+}
+
+.worker-card.dead {
+  border-color: #f44336;
+  opacity: 0.7;
+}
+
+.worker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+.worker-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.status-badge.online {
+  background-color: #1e4620;
+  color: #4caf50;
+}
+
+.status-badge.offline {
+  background-color: #4a1310;
+  color: #f44336;
+}
+
+.worker-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stat-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1a1a1a;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.recent-task {
+  background-color: #1a1a1a;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.tweet-text {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.9rem;
+  color: #ddd;
+  font-style: italic;
+  word-wrap: break-word;
+}
+
+.explanation {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background-color: #1f1f1f;
+  border-radius: 8px;
+  border-left: 4px solid #646cff;
+  text-align: left;
+}
+
+.explanation h3 {
+  margin-top: 0;
+}
+
+.explanation p {
+  margin: 0.5rem 0;
+}
