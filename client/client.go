@@ -22,24 +22,27 @@ func StartClient() {
 	i := 0
 
 	for {
+		// Send a burst of 4 tweets concurrently (or quickly)
+		for j := 0; j < 4; j++ {
+			tweet := shared.Tweet{
+				ID:      i,
+				Content: tweets[i%len(tweets)],
+			}
 
-		tweet := shared.Tweet{
-			ID:      i,
-			Content: tweets[i%len(tweets)],
+			data, _ := json.Marshal(tweet)
+
+			go func(t shared.Tweet, d []byte) {
+				http.Post(
+					"http://localhost:8000/tweet",
+					"application/json",
+					bytes.NewBuffer(d),
+				)
+				fmt.Println("Client sent:", t.Content)
+			}(tweet, data)
+
+			i++
 		}
 
-		data, _ := json.Marshal(tweet)
-
-		http.Post(
-			"http://localhost:8000/tweet",
-			"application/json",
-			bytes.NewBuffer(data),
-		)
-
-		fmt.Println("Client sent:", tweet.Content)
-
-		i++
-
-		time.Sleep(2 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }

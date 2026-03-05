@@ -6,24 +6,38 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"tweetstorm/algorithms"
+	"tweetstorm/leader"
 	"tweetstorm/shared"
 )
 
 var (
 	globalWordCount = make(map[string]int)
-	mu              sync.Mutex
+	raNode          *algorithms.RicartAgrawala
+	taskMu          sync.Mutex
 )
 
 func processTweet(tweet string) {
+	taskMu.Lock()
+	defer taskMu.Unlock()
+
 	words := strings.Fields(tweet)
 
-	mu.Lock()
-	defer mu.Unlock()
+	if raNode != nil {
+		raNode.RequestLock()
+	}
 
 	for _, w := range words {
 		globalWordCount[w]++
+	}
+
+	// Artificial delay to visualize the Lock in the UI
+	time.Sleep(2 * time.Second)
+
+	if raNode != nil {
+		raNode.ReleaseLock()
 	}
 }
 
@@ -34,6 +48,13 @@ func handleTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Invalid task", http.StatusBadRequest)
 		return
+	}
+
+	// Update Lamport clock on the worker based on task timestamp
+	if raNode != nil {
+		// Use a dummy method or just acknowledge we received an event timestamp
+		// Depending on where LamportClock is exported.
+		// For simplicity, RA node's handleRequest manages its own clock.
 	}
 
 	processTweet(task.Tweet.Content)
@@ -56,9 +77,25 @@ func StartWorker(port string) {
 		nodeID = 4
 	}
 
+	workerNodes := map[int]string{
+		1: "http://localhost:8001",
+		2: "http://localhost:8002",
+		3: "http://localhost:8003",
+		4: "http://localhost:8004",
+	}
+
 	if nodeID != 0 {
+		// Setup Bully Failover Callback so this worker can act as the new leader
+		algorithms.OnBecomeLeader = func() {
+			leader.InitFailoverLeader()
+		}
+
 		// Initialize Bully on worker (Node 5 is initial leader)
 		algorithms.InitBully(nodeID, port, 5)
+
+		// Initialize Ricart-Agrawala Mutual Exclusion
+		lamportClock := algorithms.NewLamportClock(fmt.Sprintf("worker-%d", nodeID))
+		raNode = algorithms.NewRicartAgrawala(nodeID, port, lamportClock, workerNodes)
 	}
 
 	http.HandleFunc("/task", handleTask)

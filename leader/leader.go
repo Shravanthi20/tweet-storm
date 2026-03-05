@@ -71,7 +71,9 @@ func forwardTask(tweet shared.Tweet) {
 	data, _ := json.Marshal(task)
 
 	// Post the task to the selected worker node's /task endpoint
-	http.Post(workerURL+"/task", "application/json", bytes.NewBuffer(data))
+	go func() {
+		http.Post(workerURL+"/task", "application/json", bytes.NewBuffer(data))
+	}()
 }
 
 func startHealthChecks() {
@@ -142,16 +144,23 @@ func HandleState(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(state)
 }
 
-func StartLeader(port string) {
-
-	// Node 5 is the initial Leader
-	algorithms.InitBully(5, port, 5)
-
+// InitFailoverLeader is called by a Worker node when it wins a Bully election
+func InitFailoverLeader() {
 	// Initialize HashRing and Health checks
 	for _, w := range initialWorkers {
 		hashRing.AddNode(w)
 	}
 	go startHealthChecks()
+
+	fmt.Println("[Leader Failover] Hash ring and health checks initialized.")
+}
+
+func StartLeader(port string) {
+
+	// Node 5 is the initial Leader
+	algorithms.InitBully(5, port, 5)
+
+	InitFailoverLeader()
 
 	http.HandleFunc("/tweet", HandleTweet)
 	http.HandleFunc("/events", HandleEvents)

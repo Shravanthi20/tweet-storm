@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Dashboard } from './Dashboard';
+import { RicartAgrawala } from './RicartAgrawala';
 import './App.css';
 
 type EventLog = {
@@ -17,8 +18,8 @@ function Timeline() {
       try {
         const res = await fetch('http://localhost:8000/events');
         if (!res.ok) return;
-        const data = (await res.json()) as EventLog[];
-        setEvents(data);
+        const data = (await res.json()) as EventLog[] | null;
+        setEvents(data || []);
       } catch {
         // Keep UI running even if backend is temporarily down.
       }
@@ -56,12 +57,14 @@ function App() {
           <div className="nav-links">
             <Link to="/" className="nav-link">Event Timeline</Link>
             <Link to="/dashboard" className="nav-link highlight">Hash Ring Simulation</Link>
+            <Link to="/mutual-exclusion" className="nav-link" style={{ color: '#ffb300' }}>Mutual Exclusion</Link>
           </div>
         </nav>
 
         <Routes>
           <Route path="/" element={<Timeline />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/mutual-exclusion" element={<RicartAgrawala />} />
         </Routes>
       </div>
     </BrowserRouter>

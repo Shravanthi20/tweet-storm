@@ -143,6 +143,9 @@ func ReceiveElectionMessage(senderID int) {
 	go StartElection(nodeID)
 }
 
+// OnBecomeLeader is an optional callback that fires when this node wins an election
+var OnBecomeLeader func()
+
 func becomeLeader() {
 	bullyMu.Lock()
 	leaderID = nodeID
@@ -155,6 +158,11 @@ func becomeLeader() {
 	go func() {
 		// Only try to handle traffic on 8000 if we are not the initial leader (who is already there)
 		if nodePort != "8000" {
+			// Trigger any application-level routing setup (e.g. hashring)
+			if OnBecomeLeader != nil {
+				OnBecomeLeader()
+			}
+
 			// Custom mux for the leader endpoints to avoid path collision
 			// with the worker endpoints on the default mux
 			leaderMux := http.NewServeMux()
