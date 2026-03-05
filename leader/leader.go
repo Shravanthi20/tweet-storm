@@ -50,7 +50,7 @@ func forwardTask(tweet shared.Tweet) {
 	http.Post(workerURL, "application/json", bytes.NewBuffer(data))
 }
 
-func handleTweet(w http.ResponseWriter, r *http.Request) {
+func HandleTweet(w http.ResponseWriter, r *http.Request) {
 
 	var tweet shared.Tweet
 
@@ -69,7 +69,7 @@ func handleTweet(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Tweet forwarded"))
 }
 
-func handleEvents(w http.ResponseWriter, r *http.Request) {
+func HandleEvents(w http.ResponseWriter, r *http.Request) {
 	eventMu.Lock()
 	defer eventMu.Unlock()
 
@@ -80,10 +80,14 @@ func handleEvents(w http.ResponseWriter, r *http.Request) {
 
 func StartLeader(port string) {
 
-	http.HandleFunc("/tweet", handleTweet)
-	http.HandleFunc("/events", handleEvents)
+	// Node 5 is the initial Leader
+	algorithms.InitBully(5, port, 5)
+
+	http.HandleFunc("/tweet", HandleTweet)
+	http.HandleFunc("/events", HandleEvents)
 
 	fmt.Println("Leader running on port", port)
 
+	// Will block
 	http.ListenAndServe(":"+port, nil)
 }
