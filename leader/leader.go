@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 
+	"tweetstorm/algorithms"
 	"tweetstorm/shared"
 )
 
@@ -16,9 +18,28 @@ var workers = []string{
 }
 
 var nextWorker = 0
+var leaderClock = algorithms.NewLamportClock("leader")
+var eventMu sync.Mutex
+var eventLogs []shared.EventLog
+
+func addEvent(node string, message string, timestamp int) {
+	eventMu.Lock()
+	defer eventMu.Unlock()
+
+	eventLogs = append(eventLogs, shared.EventLog{
+		Node:      node,
+		Message:   message,
+		Timestamp: timestamp,
+	})
+}
 
 func forwardTask(tweet shared.Tweet) {
-	task := shared.Task{Tweet: tweet}
+	ts := leaderClock.SendEvent()
+	addEvent("Leader", "assigned task to worker", ts)
+	task := shared.Task{
+		Tweet:     tweet,
+		Timestamp: ts,
+	}
 
 	data, _ := json.Marshal(task)
 
@@ -39,6 +60,8 @@ func handleTweet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ts := leaderClock.Tick()
+	addEvent("Leader", fmt.Sprintf("received tweet: %s", tweet.Content), ts)
 	fmt.Println("Leader received tweet:", tweet.Content)
 
 	forwardTask(tweet)
@@ -46,9 +69,19 @@ func handleTweet(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Tweet forwarded"))
 }
 
+func handleEvents(w http.ResponseWriter, r *http.Request) {
+	eventMu.Lock()
+	defer eventMu.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	json.NewEncoder(w).Encode(eventLogs)
+}
+
 func StartLeader(port string) {
 
 	http.HandleFunc("/tweet", handleTweet)
+	http.HandleFunc("/events", handleEvents)
 
 	fmt.Println("Leader running on port", port)
 

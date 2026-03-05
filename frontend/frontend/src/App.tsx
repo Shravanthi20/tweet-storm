@@ -1,34 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react'
 import './App.css'
 
+type EventLog = {
+  node: string
+  message: string
+  timestamp: number
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [events, setEvents] = useState<EventLog[]>([])
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/events')
+        if (!res.ok) return
+        const data = (await res.json()) as EventLog[]
+        setEvents(data)
+      } catch {
+        // Keep UI running even if backend is temporarily down.
+      }
+    }
+
+    fetchEvents()
+    const timer = setInterval(fetchEvents, 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <main style={{ maxWidth: 800, margin: '2rem auto', padding: '0 1rem' }}>
+      <h1>TweetStorm Lamport Timeline</h1>
+      {events.length === 0 ? (
+        <p>No events yet. Start leader, workers, and client.</p>
+      ) : (
+        <ul>
+          {events.map((event, idx) => (
+            <li key={`${event.timestamp}-${idx}`}>
+              [Clock {event.timestamp}] {event.node} -&gt; {event.message}
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
   )
 }
 

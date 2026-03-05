@@ -27,11 +27,18 @@ type Tweet struct {
 }
 
 type Task struct {
-	Tweet Tweet `json:"tweet"`
+	Tweet     Tweet `json:"tweet"`
+	Timestamp int   `json:"timestamp"`
 }
 
 type Result struct {
 	WordCounts map[string]int `json:"wordCounts"`
+}
+
+type EventLog struct {
+	Node      string `json:"node"`
+	Message   string `json:"message"`
+	Timestamp int    `json:"timestamp"`
 }
 
 type WorkerInfo struct {
