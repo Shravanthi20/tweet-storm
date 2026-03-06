@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -13,13 +14,7 @@ var (
 	nodeID   int
 	leaderID int
 	nodePort string
-	nodes    = map[int]string{
-		1: "http://localhost:8001",
-		2: "http://localhost:8002",
-		3: "http://localhost:8003",
-		4: "http://localhost:8004",
-		5: "http://localhost:8000", // Initial leader
-	}
+	nodes    map[int]string
 	bullyMu       sync.Mutex
 	electionMutex sync.Mutex
 	inElection    bool
@@ -29,6 +24,23 @@ func InitBully(id int, port string, initialLeader int) {
 	nodeID = id
 	nodePort = port
 	leaderID = initialLeader
+
+	leaderIP := os.Getenv("LEADER_IP")
+	if leaderIP == "" {
+		leaderIP = "localhost"
+	}
+	workerIP := os.Getenv("WORKER_IP")
+	if workerIP == "" {
+		workerIP = "localhost"
+	}
+
+	nodes = map[int]string{
+		1: "http://" + workerIP + ":8001",
+		2: "http://" + workerIP + ":8002",
+		3: "http://" + workerIP + ":8003",
+		4: "http://" + workerIP + ":8004",
+		5: "http://" + leaderIP + ":8000",
+	}
 
 	// Register Bully HTTP Handlers
 	http.HandleFunc("/bully/election", handleReceiveElectionMessage)

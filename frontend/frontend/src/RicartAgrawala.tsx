@@ -23,7 +23,8 @@ export const RicartAgrawala = () => {
 
             for (const port of workerPorts) {
                 try {
-                    const res = await fetch(`http://localhost:${port}/ra/status`);
+                    const workerIP = import.meta.env.VITE_WORKER_IP || 'localhost';
+                    const res = await fetch(`http://${workerIP}:${port}/ra/status`);
                     if (res.ok) {
                         const data = (await res.json()) as RAStatus;
                         newStatuses[data.nodeId] = data;

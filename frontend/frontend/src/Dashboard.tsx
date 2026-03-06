@@ -19,7 +19,8 @@ export const Dashboard = () => {
     useEffect(() => {
         const fetchState = async () => {
             try {
-                const res = await fetch('http://localhost:8000/api/state');
+                const leaderIP = import.meta.env.VITE_LEADER_IP || 'localhost';
+                const res = await fetch(`http://${leaderIP}:8000/api/state`);
                 if (!res.ok) throw new Error('Backend not ok');
                 const data = (await res.json()) as ClusterState;
                 setState(data);
@@ -65,7 +66,7 @@ export const Dashboard = () => {
                     return (
                         <div key={worker} className={`worker-card ${isAlive ? 'alive' : 'dead'}`}>
                             <div className="worker-header">
-                                <h3>{worker.replace('http://localhost:', 'Node ')}</h3>
+                                <h3>{worker.replace(/http:\/\/[^:]+:/, 'Node ')}</h3>
                                 <span className={`status-badge ${isAlive ? 'online' : 'offline'}`}>
                                     {isAlive ? 'ONLINE' : 'OFFLINE'}
                                 </span>

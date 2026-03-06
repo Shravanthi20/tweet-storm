@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -12,11 +13,17 @@ import (
 	"tweetstorm/shared"
 )
 
-var initialWorkers = []string{
-	"http://localhost:8001",
-	"http://localhost:8002",
-	"http://localhost:8003",
-	"http://localhost:8004", // adding the fourth worker from simulate_crash configuration
+func getInitialWorkers() []string {
+	workerIP := os.Getenv("WORKER_IP")
+	if workerIP == "" {
+		workerIP = "localhost"
+	}
+	return []string{
+		"http://" + workerIP + ":8001",
+		"http://" + workerIP + ":8002",
+		"http://" + workerIP + ":8003",
+		"http://" + workerIP + ":8004", // adding the fourth worker from simulate_crash configuration
+	}
 }
 
 var hashRing = algorithms.NewHashRing(500) // 500 virtual nodes for more even distribution
@@ -81,7 +88,7 @@ func startHealthChecks() {
 	client := http.Client{Timeout: 1 * time.Second}
 
 	for range ticker.C {
-		for _, worker := range initialWorkers {
+		for _, worker := range getInitialWorkers() {
 			// Ping the worker
 			resp, err := client.Get(worker + "/worker/ping")
 			if err != nil || resp.StatusCode != http.StatusOK {
@@ -147,7 +154,7 @@ func HandleState(w http.ResponseWriter, r *http.Request) {
 // InitFailoverLeader is called by a Worker node when it wins a Bully election
 func InitFailoverLeader() {
 	// Initialize HashRing and Health checks
-	for _, w := range initialWorkers {
+	for _, w := range getInitialWorkers() {
 		hashRing.AddNode(w)
 	}
 	go startHealthChecks()

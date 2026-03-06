@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"tweetstorm/shared"
@@ -18,6 +19,11 @@ var tweets = []string{
 }
 
 func StartClient() {
+
+	leaderIP := os.Getenv("LEADER_IP")
+	if leaderIP == "" {
+		leaderIP = "localhost"
+	}
 
 	i := 0
 
@@ -33,7 +39,7 @@ func StartClient() {
 
 			go func(t shared.Tweet, d []byte) {
 				http.Post(
-					"http://localhost:8000/tweet",
+					"http://"+leaderIP+":8000/tweet",
 					"application/json",
 					bytes.NewBuffer(d),
 				)

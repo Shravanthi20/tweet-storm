@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -77,11 +78,16 @@ func StartWorker(port string) {
 		nodeID = 4
 	}
 
+	workerIP := os.Getenv("WORKER_IP")
+	if workerIP == "" {
+		workerIP = "localhost"
+	}
+
 	workerNodes := map[int]string{
-		1: "http://localhost:8001",
-		2: "http://localhost:8002",
-		3: "http://localhost:8003",
-		4: "http://localhost:8004",
+		1: "http://" + workerIP + ":8001",
+		2: "http://" + workerIP + ":8002",
+		3: "http://" + workerIP + ":8003",
+		4: "http://" + workerIP + ":8004",
 	}
 
 	if nodeID != 0 {

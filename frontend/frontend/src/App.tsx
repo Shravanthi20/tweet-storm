@@ -16,7 +16,8 @@ function Timeline() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('http://localhost:8000/events');
+        const leaderIP = import.meta.env.VITE_LEADER_IP || 'localhost';
+        const res = await fetch(`http://${leaderIP}:8000/events`);
         if (!res.ok) return;
         const data = (await res.json()) as EventLog[] | null;
         setEvents(data || []);
