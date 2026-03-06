@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	nodeID   int
-	leaderID int
-	nodePort string
-	nodes    map[int]string
+	nodeID        int
+	leaderID      int
+	nodePort      string
+	nodes         map[int]string
 	bullyMu       sync.Mutex
 	electionMutex sync.Mutex
 	inElection    bool
@@ -190,7 +190,7 @@ func becomeLeader() {
 			// Try to bind to port 8000, retrying if it's still in use (TIME_WAIT from crashed node)
 			for {
 				fmt.Printf("[Node %d] Taking over client traffic on port 8000\n", nodeID)
-				err := http.ListenAndServe(":8000", leaderMux)
+				err := http.ListenAndServe("0.0.0.0:8000", leaderMux)
 				if err != nil {
 					fmt.Printf("[Node %d] Port 8000 still in use, retrying in 2 seconds...\n", nodeID)
 					time.Sleep(2 * time.Second)

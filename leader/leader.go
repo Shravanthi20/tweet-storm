@@ -13,6 +13,7 @@ import (
 	"tweetstorm/shared"
 
 	"context"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -239,7 +240,7 @@ func StartLeader(port string) {
 	fmt.Println("Leader running on port", port)
 
 	// Will block until port error
-	err := http.ListenAndServe(":"+port, nil)
+	err := http.ListenAndServe("0.0.0.0:"+port, nil)
 	if err != nil {
 		fmt.Printf("[Leader Node 5] ERROR: Could not bind to port %s — %v\n", port, err)
 		fmt.Println("[Leader Node 5] TIP: Kill any existing process on this port and retry.")
