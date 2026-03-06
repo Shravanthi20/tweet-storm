@@ -46,6 +46,7 @@ func InitBully(id int, port string, initialLeader int) {
 	http.HandleFunc("/bully/election", handleReceiveElectionMessage)
 	http.HandleFunc("/bully/coordinator", handleReceiveCoordinator)
 	http.HandleFunc("/bully/ping", handlePing)
+	http.HandleFunc("/bully/status", handleBullyStatus)
 
 	// Start pinging the leader to detect failures
 	if nodeID != leaderID {
@@ -266,4 +267,33 @@ func GetLeader() int {
 
 func handlePing(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
+}
+
+func handleBullyStatus(w http.ResponseWriter, r *http.Request) {
+	// CORS headers for the frontend visualization
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	bullyMu.Lock()
+	currentLeader := leaderID
+	currentNode := nodeID
+	bullyMu.Unlock()
+
+	electionMutex.Lock()
+	currentElectionState := inElection
+	electionMutex.Unlock()
+
+	status := map[string]interface{}{
+		"nodeId":     currentNode,
+		"leaderId":   currentLeader,
+		"inElection": currentElectionState,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(status)
 }

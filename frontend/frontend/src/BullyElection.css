@@ -1,0 +1,212 @@
+.bully-container {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    color: #ffffff;
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.bully-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bully-header h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.consensus-badge {
+    display: inline-block;
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+    margin-top: 1rem;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.nodes-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+}
+
+.node-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.node-card h3 {
+    margin: 1rem 0;
+    font-size: 1.25rem;
+}
+
+.node-id-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    z-index: 2;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.node-details {
+    font-size: 0.9rem;
+    color: #ccc;
+    background: rgba(0, 0, 0, 0.2);
+    width: 100%;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.node-details p {
+    margin: 0.25rem 0;
+}
+
+.state-text {
+    font-weight: bold;
+    margin-top: 0.5rem !important;
+}
+
+/* Status specific styling */
+
+.node-card.follower {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.node-card.follower .node-id-circle {
+    background: #3498db;
+    color: white;
+}
+
+.node-card.follower .state-text {
+    color: #3498db;
+}
+
+.node-card.leader {
+    border-color: #f1c40f;
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
+    transform: translateY(-5px);
+}
+
+.node-card.leader .node-id-circle {
+    background: #f1c40f;
+    color: #222;
+}
+
+.node-card.leader .state-text {
+    color: #f1c40f;
+}
+
+.node-card.leader::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #f1c40f;
+}
+
+.node-card.dead {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    border-color: #555;
+}
+
+.node-card.dead .node-id-circle {
+    background: #555;
+    color: #999;
+}
+
+/* Election Animation */
+@keyframes pulseRed {
+    0% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    }
+}
+
+.node-card.election {
+    border-color: #e74c3c;
+    animation: pulseRed 1.5s infinite;
+}
+
+.node-card.election .node-id-circle {
+    background: #e74c3c;
+    color: white;
+}
+
+.node-card.election .state-text {
+    color: #e74c3c;
+}
+
+.ping-indicator {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #2ecc71;
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    opacity: 0.8;
+}
+
+.instructions-panel {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.instructions-panel h3 {
+    margin-top: 0;
+    color: #00f2fe;
+}
+
+.instructions-panel ol {
+    padding-left: 1.5rem;
+    line-height: 1.6;
+}
+
+.instructions-panel code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #f1c40f;
+}

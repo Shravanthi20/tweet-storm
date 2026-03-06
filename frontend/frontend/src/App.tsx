@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Dashboard } from './Dashboard';
 import { RicartAgrawala } from './RicartAgrawala';
 import { TweetComposer } from './TweetComposer';
+import { BullyElection } from './BullyElection'; // Added BullyElection import
 import './App.css';
 
 type EventLog = {
@@ -61,6 +62,7 @@ function App() {
             <Link to="/" className="nav-link">Event Timeline</Link>
             <Link to="/dashboard" className="nav-link highlight">Hash Ring Simulation</Link>
             <Link to="/mutual-exclusion" className="nav-link" style={{ color: '#ffb300' }}>Mutual Exclusion</Link>
+            <Link to="/bully" className="nav-link">Bully Election</Link> {/* Added Bully Election link */}
           </div>
         </nav>
 
@@ -69,6 +71,7 @@ function App() {
           <Route path="/compose" element={<TweetComposer />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/mutual-exclusion" element={<RicartAgrawala />} />
+          <Route path="/bully" element={<BullyElection />} /> {/* Added Bully Election route */}
         </Routes>
       </div>
     </BrowserRouter>
