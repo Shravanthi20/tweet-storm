@@ -11,6 +11,10 @@ import (
 
 	"tweetstorm/algorithms"
 	"tweetstorm/shared"
+
+	"context"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func getInitialWorkers() []string {
@@ -25,6 +29,9 @@ func getInitialWorkers() []string {
 		"http://" + workerIP + ":8004", // adding the fourth worker from simulate_crash configuration
 	}
 }
+
+var mongoClient *mongo.Client
+var tweetCollection *mongo.Collection
 
 var hashRing = algorithms.NewHashRing(500) // 500 virtual nodes for more even distribution
 var leaderClock = algorithms.NewLamportClock("leader")
@@ -108,18 +115,42 @@ func startHealthChecks() {
 }
 
 func HandleTweet(w http.ResponseWriter, r *http.Request) {
+	// CORS headers for the frontend React app to post directly
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
 	var tweet shared.Tweet
 
 	err := json.NewDecoder(r.Body).Decode(&tweet)
 	if err != nil {
-		http.Error(w, "Invalid tweet", http.StatusBadRequest)
+		fmt.Println("[Leader] ERROR: Failed to decode tweet JSON:", err)
+		http.Error(w, "Invalid tweet format: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	ts := leaderClock.Tick()
 	addEvent("Leader", fmt.Sprintf("received tweet: %s", tweet.Content), ts)
-	fmt.Println("Leader received tweet:", tweet.Content)
+	fmt.Println("Leader received tweet STARTING MONGO SAVE:", tweet.Content)
+
+	// Save to MongoDB if available
+	if tweetCollection != nil {
+		fmt.Println("[Leader DB] Attempting to save tweet to Mongo...")
+		tweet.ID = int(time.Now().UnixMilli()) // ensure unique ID for manual tweets
+		res, err := tweetCollection.InsertOne(context.TODO(), tweet)
+		if err != nil {
+			fmt.Printf("[Leader DB] ERROR SAVING TWEET: %v\n", err)
+		} else {
+			fmt.Println("[Leader DB] Tweet saved to MongoDB! ID:", res.InsertedID)
+		}
+	} else {
+		fmt.Println("[Leader DB] FATAL: tweetCollection is nil! MongoDB was never initialized.")
+	}
 
 	forwardTask(tweet)
 
@@ -164,6 +195,27 @@ func InitFailoverLeader() {
 
 func StartLeader(port string) {
 
+	// Initialize MongoDB Connection
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		mongoURI = "mongodb://localhost:27017"
+	}
+	
+	clientOptions := options.Client().ApplyURI(mongoURI)
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+	if err != nil {
+		fmt.Println("[Leader DB] WARNING: Could not connect to MongoDB:", err)
+	} else {
+		err = client.Ping(context.TODO(), nil)
+		if err != nil {
+			fmt.Println("[Leader DB] WARNING: MongoDB ping failed:", err)
+		} else {
+			mongoClient = client
+			tweetCollection = client.Database("tweetstorm").Collection("tweets")
+			fmt.Println("[Leader DB] Successfully connected to MongoDB!")
+		}
+	}
+
 	// Node 5 is the initial Leader
 	algorithms.InitBully(5, port, 5)
 
@@ -176,7 +228,7 @@ func StartLeader(port string) {
 	fmt.Println("Leader running on port", port)
 
 	// Will block until port error
-	err := http.ListenAndServe(":"+port, nil)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		fmt.Printf("[Leader Node 5] ERROR: Could not bind to port %s — %v\n", port, err)
 		fmt.Println("[Leader Node 5] TIP: Kill any existing process on this port and retry.")

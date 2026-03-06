@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Dashboard } from './Dashboard';
 import { RicartAgrawala } from './RicartAgrawala';
+import { TweetComposer } from './TweetComposer';
 import './App.css';
 
 type EventLog = {
@@ -56,6 +57,7 @@ function App() {
         <nav className="navbar">
           <div className="nav-brand">TweetStorm ⚡🐦</div>
           <div className="nav-links">
+            <Link to="/compose" className="nav-link" style={{ color: '#03dac6', fontWeight: 'bold' }}>Tweet</Link>
             <Link to="/" className="nav-link">Event Timeline</Link>
             <Link to="/dashboard" className="nav-link highlight">Hash Ring Simulation</Link>
             <Link to="/mutual-exclusion" className="nav-link" style={{ color: '#ffb300' }}>Mutual Exclusion</Link>
@@ -64,6 +66,7 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Timeline />} />
+          <Route path="/compose" element={<TweetComposer />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/mutual-exclusion" element={<RicartAgrawala />} />
         </Routes>

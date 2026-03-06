@@ -1,0 +1,188 @@
+.composer-container {
+    padding: 2rem;
+    color: #fff;
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 3rem;
+    flex-wrap: wrap;
+    background-color: #121212;
+    border-radius: 12px;
+}
+
+.composer-card {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 600px;
+    max-width: 100%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.composer-card h2 {
+    margin: 0 0 0.5rem 0;
+    background: linear-gradient(90deg, #03dac6, #3700b3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    color: #888;
+    margin-bottom: 2rem;
+}
+
+.composer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tweet-input {
+    background: #252525;
+    border: 2px solid #333;
+    border-radius: 12px;
+    color: #fff;
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    font-family: inherit;
+    resize: none;
+    transition: all 0.3s ease;
+}
+
+.tweet-input:focus {
+    outline: none;
+    border-color: #bb86fc;
+    box-shadow: 0 0 15px rgba(187, 134, 252, 0.2);
+    background: #2a2a2a;
+}
+
+.char-count {
+    text-align: right;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.composer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+button {
+    font-family: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-send {
+    background: #bb86fc;
+    color: #000;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 30px;
+    font-size: 1.1rem;
+}
+
+.btn-send:hover:not(:disabled) {
+    background: #d0a8ff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(187, 134, 252, 0.4);
+}
+
+.btn-send:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.btn-burst {
+    background: transparent;
+    color: #03dac6;
+    border: 2px solid #03dac6;
+    padding: 1rem 1.5rem;
+    border-radius: 30px;
+    font-size: 1.1rem;
+}
+
+.btn-burst:hover {
+    background: rgba(3, 218, 198, 0.1);
+    box-shadow: 0 5px 15px rgba(3, 218, 198, 0.2);
+}
+
+.status-message {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    animation: fadeIn 0.3s ease;
+    font-weight: 500;
+}
+
+.status-message.success {
+    background: rgba(3, 218, 198, 0.2);
+    color: #03dac6;
+    border: 1px solid rgba(3, 218, 198, 0.5);
+}
+
+.status-message.error {
+    background: rgba(207, 102, 121, 0.2);
+    color: #cf6679;
+    border: 1px solid rgba(207, 102, 121, 0.5);
+}
+
+.status-message.idle {
+    background: transparent;
+    color: #aaa;
+}
+
+.info-panel {
+    background: #1a1a1a;
+    border-left: 4px solid #3700b3;
+    padding: 2rem;
+    border-radius: 0 12px 12px 0;
+    width: 350px;
+}
+
+.info-panel h3 {
+    margin-top: 0;
+    color: #ccc;
+    font-size: 1.2rem;
+}
+
+.info-panel ol {
+    color: #999;
+    line-height: 1.8;
+    padding-left: 1.5rem;
+}
+
+.info-panel li {
+    margin-bottom: 0.8rem;
+}
+
+.info-panel strong {
+    color: #fff;
+}
+
+.info-panel code {
+    background: #2a2a2a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #03dac6;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

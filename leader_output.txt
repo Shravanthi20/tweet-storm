@@ -1,0 +1,5 @@
+[Leader DB] Successfully connected to MongoDB!
+[Leader Failover] Hash ring and health checks initialized.
+Leader running on port 8000
+[Leader Node 5] ERROR: Could not bind to port 8000 — listen tcp :8000: bind: address already in use
+[Leader Node 5] TIP: Kill any existing process on this port and retry.
