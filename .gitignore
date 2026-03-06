@@ -1,1 +1,6 @@
 .env
+*.exe
+*.log
+test_build
+tweetstorm_bin
+leader_output.txt
