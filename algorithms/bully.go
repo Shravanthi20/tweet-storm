@@ -184,6 +184,8 @@ func becomeLeader() {
 			// We will register a forwarding function that directs client traffic.
 			leaderMux.HandleFunc("/tweet", ForwardToCurrentNodeHandler("/tweet"))
 			leaderMux.HandleFunc("/events", ForwardToCurrentNodeHandler("/events"))
+			leaderMux.HandleFunc("/api/state", ForwardToCurrentNodeHandler("/api/state"))
+			leaderMux.HandleFunc("/bully/status", ForwardToCurrentNodeHandler("/bully/status"))
 
 			// Try to bind to port 8000, retrying if it's still in use (TIME_WAIT from crashed node)
 			for {

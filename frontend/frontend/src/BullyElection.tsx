@@ -36,7 +36,13 @@ export const BullyElection = () => {
                     const res = await fetch(`http://${ip}:${port}/bully/status`);
                     if (res.ok) {
                         const data = await res.json() as NodeStatus;
-                        newNodes[id] = data;
+                        // Important: When a new leader takes over port 8000, 
+                        // it will return ITS own nodeId (e.g. 4), not 5.
+                        if (data.nodeId === id) {
+                            newNodes[id] = data;
+                        } else {
+                            newNodes[id] = null; // Port proxy hijacked by new leader
+                        }
                     } else {
                         newNodes[id] = null; // Node is likely dead
                     }

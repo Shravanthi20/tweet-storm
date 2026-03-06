@@ -182,25 +182,16 @@ func HandleState(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(state)
 }
 
-// InitFailoverLeader is called by a Worker node when it wins a Bully election
-func InitFailoverLeader() {
-	// Initialize HashRing and Health checks
-	for _, w := range getInitialWorkers() {
-		hashRing.AddNode(w)
+func InitMongoDB() {
+	if mongoClient != nil {
+		return // Already connected
 	}
-	go startHealthChecks()
 
-	fmt.Println("[Leader Failover] Hash ring and health checks initialized.")
-}
-
-func StartLeader(port string) {
-
-	// Initialize MongoDB Connection
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
 		mongoURI = "mongodb://localhost:27017"
 	}
-	
+
 	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
@@ -215,6 +206,26 @@ func StartLeader(port string) {
 			fmt.Println("[Leader DB] Successfully connected to MongoDB!")
 		}
 	}
+}
+
+// InitFailoverLeader is called by a Worker node when it wins a Bully election
+func InitFailoverLeader() {
+	// Reconnect to MongoDB if this node just became the leader
+	InitMongoDB()
+
+	// Initialize HashRing and Health checks
+	for _, w := range getInitialWorkers() {
+		hashRing.AddNode(w)
+	}
+	go startHealthChecks()
+
+	fmt.Println("[Leader Failover] Hash ring, health checks, and proxy routing initialized.")
+}
+
+func StartLeader(port string) {
+
+	// Initialize MongoDB Connection
+	InitMongoDB()
 
 	// Node 5 is the initial Leader
 	algorithms.InitBully(5, port, 5)
@@ -228,7 +239,7 @@ func StartLeader(port string) {
 	fmt.Println("Leader running on port", port)
 
 	// Will block until port error
-	err = http.ListenAndServe(":"+port, nil)
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		fmt.Printf("[Leader Node 5] ERROR: Could not bind to port %s — %v\n", port, err)
 		fmt.Println("[Leader Node 5] TIP: Kill any existing process on this port and retry.")

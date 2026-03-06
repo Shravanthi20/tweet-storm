@@ -109,6 +109,11 @@ func StartWorker(port string) {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	// Add endpoints for leader failover so proxy can hit them locally
+	http.HandleFunc("/tweet", leader.HandleTweet)
+	http.HandleFunc("/events", leader.HandleEvents)
+	http.HandleFunc("/api/state", leader.HandleState)
+
 	fmt.Println("Worker running on port", port)
 
 	http.ListenAndServe(":"+port, nil)
